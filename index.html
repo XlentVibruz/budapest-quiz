@@ -259,7 +259,7 @@
     </div>
     <div class="card" id="lb-result"></div>
     <button class="btn btn-share" onclick="shareResult()">Dela med vänner 🔗</button>
-    <p class="share-hint">Länken innehåller alla poäng — skicka vidare i gruppen!</p>
+    <p class="share-hint">Alla som spelar hamnar på samma topplista — utmana dina vänner! 🏆</p>
     <button class="btn btn-secondary" onclick="resetQuiz()">Spela igen</button>
   </div>
 
@@ -352,28 +352,41 @@ const QUESTIONS = [
     q: "Vilket år kröntes Stefanus I till Ungerns förste kung?",
     opts: ["896", "1000", "1046", "1222"], a: 1,
     fun: "Stefanus I kröntes år 1000 och lade grunden för det kristna Ungern. S:t Stefansbasilikan är uppkallad efter honom! 👑"
-  },
-  {
-    q: "Vilka dagar öppnar Széchenyi-badet kl. 06:00 (inte 08:00)?",
-    opts: ["Lördag–söndag", "Måndag–fredag", "Tisdag–torsdag", "Varje dag"], a: 1,
-    fun: "Vardagar öppnar Széchenyi redan kl. 06:00 — perfekt för en tidig morgondipp innan hettan slår till! ☀️"
   }
 ];
 
 const TOTAL = QUESTIONS.length;
 
-// Scores live in the URL hash so the link IS the leaderboard
-function loadScores() {
-  const h = location.hash.slice(1);
-  if (!h) return [];
-  try { return JSON.parse(atob(h)); } catch { return []; }
+// Poäng lagras i en delad Supabase-databas så alla ser samma topplista
+const SUPABASE_URL = 'https://kcqrkomcbtqbhclqpyri.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_mWeCpNkPjMfQVbP4Ytq3Tw_wP9T2TAt';
+const SB_HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
+
+async function fetchScores() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/scores?select=name,score&order=score.desc`,
+      { headers: SB_HEADERS }
+    );
+    if (!res.ok) return [];
+    const rows = await res.json();
+    return rows.map(r => ({ n: r.name, s: r.score }));
+  } catch { return []; }
 }
-function saveScores(s) {
-  history.replaceState(null, '', '#' + btoa(JSON.stringify(s)));
+
+async function submitScore(name, sc) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?on_conflict=name`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ name, score: sc, total: TOTAL, updated_at: new Date().toISOString() })
+    });
+    return res.ok;
+  } catch { return false; }
 }
 
 let playerName = '', currentQ = 0, score = 0, shuffled = [], answered = false;
-let scores = loadScores();
+let scores = [];
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -415,8 +428,9 @@ function renderLeaderboard(containerId, highlight) {
       </div>`;
     }).join('');
 }
-function updateWelcomeBoard() {
+async function updateWelcomeBoard() {
   const wrap = document.getElementById('lb-welcome-wrap');
+  scores = await fetchScores();
   if (scores.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
   renderLeaderboard('lb-welcome', null);
@@ -471,11 +485,7 @@ function nextQuestion() {
   else renderQuestion();
 }
 
-function finish() {
-  scores = scores.filter(s => s.n !== playerName);
-  scores.push({ n: playerName, s: score });
-  saveScores(scores);
-
+async function finish() {
   const pct = score / TOTAL;
   let emoji, msg;
   if (pct === 1)      { emoji = '🏆'; msg = 'Perfekt! Du kan allt om Budapest!'; }
@@ -489,13 +499,18 @@ function finish() {
   document.getElementById('score-big').textContent = score;
   document.getElementById('score-total').textContent = 'av ' + TOTAL + ' rätt';
   document.getElementById('score-msg').textContent = msg;
-  renderLeaderboard('lb-result', playerName);
+  document.getElementById('lb-result').innerHTML =
+    '<p class="lb-title">Topplista</p><p style="color:var(--muted);font-size:.9rem">Laddar…</p>';
   showScreen('result');
+
+  await submitScore(playerName, score);
+  scores = await fetchScores();
+  renderLeaderboard('lb-result', playerName);
 }
 
 function shareResult() {
-  const url = location.href;
-  const text = `🏛️ Budapest Quiz\n${playerName} fick ${score}/${TOTAL} rätt!\n\nSpela du med och se topplistan:`;
+  const url = location.origin + location.pathname;
+  const text = `🏛️ Budapest Quiz\n${playerName} fick ${score}/${TOTAL} rätt!\n\nSpela du med — alla hamnar på samma topplista:`;
   if (navigator.share) {
     navigator.share({ title: 'Budapest Quiz', text, url }).catch(() => copyUrl(url));
   } else {
