@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Budapest Quiz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #12122b;
+      --card: #1e1e3f;
+      --gold: #e4b94a;
+      --gold-dim: #b8923a;
+      --text: #f0f0f0;
+      --muted: #8888aa;
+      --green: #4caf50;
+      --red: #ef5350;
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem 1rem 3rem;
+    }
+
+    #app { width: 100%; max-width: 480px; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .header { text-align: center; padding: 2rem 0 1.25rem; }
+    .header .emoji { font-size: 3.5rem; display: block; margin-bottom: 0.4rem; }
+    .header h1 {
+      font-size: 2rem; font-weight: 800; color: var(--gold);
+      text-shadow: 0 0 24px rgba(228,185,74,.35);
+    }
+    .header p { color: var(--muted); margin-top: 0.3rem; font-size: 0.9rem; }
+
+    .card { background: var(--card); border-radius: var(--radius); padding: 1.4rem; margin: 0.85rem 0; }
+
+    .input-group { margin: 0.5rem 0 1.2rem; }
+    .input-group label {
+      display: block; color: var(--muted); font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: .5rem;
+    }
+    .input-group input {
+      width: 100%; padding: 1rem 1.2rem; background: var(--bg);
+      border: 2px solid rgba(228,185,74,.2); border-radius: 12px;
+      color: var(--text); font-size: 1.1rem; outline: none;
+      transition: border-color .2s; -webkit-appearance: none;
+    }
+    .input-group input:focus { border-color: var(--gold); }
+
+    .btn {
+      display: block; width: 100%; padding: 1rem; border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all .15s;
+      text-align: center; -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary { background: var(--gold); color: #12122b; }
+    .btn-primary:active { background: var(--gold-dim); transform: scale(.98); }
+    .btn-secondary { background: rgba(255,255,255,.07); color: var(--text); margin-top: .7rem; }
+    .btn-secondary:active { background: rgba(255,255,255,.12); }
+    .btn-share { background: #25D366; color: #fff; margin-top: .7rem; }
+    .btn-share:active { background: #1da851; }
+
+    .progress-wrap { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.1rem; }
+    .progress-bar { flex: 1; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width .4s ease; }
+    .progress-label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+
+    .question-text { font-size: 1.1rem; font-weight: 600; line-height: 1.55; margin-bottom: 1.25rem; }
+    .options { display: flex; flex-direction: column; gap: .65rem; }
+    .option-btn {
+      display: block; width: 100%; padding: .85rem 1.1rem;
+      background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1);
+      border-radius: 12px; color: var(--text); font-size: .97rem; text-align: left;
+      cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent;
+    }
+    .option-btn:active:not(:disabled) { transform: scale(.98); }
+    .option-btn.correct { border-color: var(--green); background: rgba(76,175,80,.15); color: var(--green); font-weight: 700; }
+    .option-btn.wrong { border-color: var(--red); background: rgba(239,83,80,.1); color: var(--red); }
+    .option-btn:disabled { cursor: default; }
+
+    .fun-fact {
+      margin-top: 1rem; padding: .85rem 1rem;
+      background: rgba(228,185,74,.07); border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0; font-size: .88rem; color: var(--muted); line-height: 1.55;
+    }
+    .btn-next { margin-top: 1rem; }
+
+    .score-display { text-align: center; padding: 1.25rem 0 .5rem; }
+    .score-big { font-size: 4.5rem; font-weight: 900; color: var(--gold); line-height: 1; }
+    .score-total { font-size: 1.1rem; color: var(--muted); margin-top: .1rem; }
+    .score-msg { margin-top: .75rem; font-size: 1.05rem; font-weight: 600; }
+
+    .lb-title {
+      color: var(--gold); font-size: .78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: .75rem;
+    }
+    .lb-row { display: flex; align-items: center; gap: .7rem; padding: .6rem 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank { font-size: .95rem; width: 1.8rem; text-align: center; flex-shrink: 0; }
+    .lb-name { flex: 1; font-size: .97rem; font-weight: 600; }
+    .lb-name.me { color: var(--gold); }
+    .lb-score { font-size: .97rem; font-weight: 700; color: var(--gold); }
+    .lb-score .of { color: var(--muted); font-weight: 400; font-size: .82rem; }
+
+    .share-hint { font-size: .82rem; color: var(--muted); text-align: center; margin-top: .5rem; }
+
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green); color: #fff; padding: .7rem 1.4rem;
+      border-radius: 100px; font-weight: 700; font-size: .9rem;
+      transition: transform .3s ease; pointer-events: none;
+      white-space: nowrap; z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- WELCOME -->
+  <div id="screen-welcome" class="screen active">
+    <div class="header">
+      <span class="emoji">🏛️</span>
+      <h1>Budapest Quiz</h1>
+      <p>Testa dina kunskaper från resan!</p>
+    </div>
+    <div id="lb-welcome-wrap" style="display:none">
+      <div class="card" id="lb-welcome"></div>
+    </div>
+    <div class="card">
+      <div class="input-group">
+        <label>Ditt namn</label>
+        <input id="name-input" type="text" placeholder="Skriv ditt namn…" autocomplete="off" autocorrect="off" />
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()">Starta quiz! 🚀</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-label" id="progress-label"></span>
+    </div>
+    <div class="card">
+      <div class="question-text" id="question-text"></div>
+      <div class="options" id="options"></div>
+      <div class="fun-fact" id="fun-fact" style="display:none"></div>
+      <button class="btn btn-primary btn-next" id="btn-next" style="display:none" onclick="nextQuestion()">Nästa fråga →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" class="screen">
+    <div class="header">
+      <span class="emoji" id="result-emoji">🏆</span>
+      <h1 id="result-title"></h1>
+    </div>
+    <div class="card">
+      <div class="score-display">
+        <div class="score-big" id="score-big"></div>
+        <div class="score-total" id="score-total">av 19 rätt</div>
+        <div class="score-msg" id="score-msg"></div>
+      </div>
+    </div>
+    <div class="card" id="lb-result"></div>
+    <button class="btn btn-share" onclick="shareResult()">Dela med vänner 🔗</button>
+    <p class="share-hint">Länken innehåller alla poäng — skicka vidare i gruppen!</p>
+    <button class="btn btn-secondary" onclick="resetQuiz()">Spela igen</button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Hur varmt är vattnet i Széchenyi-badets bassänger?",
+    opts: ["20–24°C", "28–32°C", "36–38°C", "42–46°C"], a: 2,
+    fun: "Vattnet pumpas upp ur geotermiska källor med 74°C och kyls ned till 36–38°C. Budapest har över 100 termala källor! 🌊"
+  },
+  {
+    q: "Vilken nationalitet hade Sankt Gellért som missionerade i Ungern på 1000-talet?",
+    opts: ["Ungersk", "Tysk", "Venetiansk", "Bysantinsk"], a: 2,
+    fun: "Gellért var en venetiansk benediktinmunk som kom till Ungern för att sprida kristendomen."
+  },
+  {
+    q: "Vilket år kastades Sankt Gellért ned från berget av upprorsmakare?",
+    opts: ["896", "1000", "1046", "1104"], a: 2,
+    fun: "Han kastades ned i en tunna år 1046 av hedniska upprorsmakare — därav bergets namn Gellértberget! 😱"
+  },
+  {
+    q: "Hur hög är Frihetsstatyns figur (Szabadság-szobor) på Gellértberget?",
+    opts: ["8 meter", "14 meter", "26 meter", "40 meter"], a: 1,
+    fun: "Figuren är 14 m hög och sockeln ytterligare 26 m. Den syns vida omkring över Budapest! 🗽"
+  },
+  {
+    q: "Vilket år restes Frihetsstatyn på Gellértberget?",
+    opts: ["1918", "1938", "1947", "1989"], a: 2,
+    fun: "Restes 1947 för att hedra den sovjetiska befrielsen. Inskriptioner togs bort efter kommunismens fall 1989! 🕊️"
+  },
+  {
+    q: "I vilken arkitekturstil är Hotel Gellért byggt?",
+    opts: ["Nygotik", "Barock", "Art deco", "Art nouveau"], a: 3,
+    fun: "Byggt 1918 i art nouveau-stil med karaktäristiska gröna koppartorn och röda tegeltak! 🏨"
+  },
+  {
+    q: "Vilket år grundades Budapest University of Technology (BME)?",
+    opts: ["1782", "1848", "1896", "1909"], a: 0,
+    fun: "Grundat 1782 — ett av Europas äldsta tekniska universitet! Lite som KTH fast i Budapest. 🎓"
+  },
+  {
+    q: "Hur hög är kupolen på S:t Stefansbasilikan?",
+    opts: ["76 meter", "86 meter", "96 meter", "106 meter"], a: 2,
+    fun: "Exakt lika högt som parlamentsbyggnaden — 96 m! Ungersk lag förbjöd länge byggnader att vara högre. ⛪"
+  },
+  {
+    q: "Vilket år stod S:t Stefansbasilikan färdig?",
+    opts: ["1851", "1870", "1884", "1905"], a: 3,
+    fun: "Byggandet tog över 50 år! Grundstenen 1851, invigning 1905. Kupolen rasade dessutom in under byggtiden. 🏛️"
+  },
+  {
+    q: "Vad förvaras som helig relik inuti S:t Stefansbasilikan?",
+    opts: ["Kung Stefanus krona", "Kung Stefanus svärd", "Kung Stefanus högerhand", "Kung Stefanus rustning"], a: 2,
+    fun: "Kung Stefanus mumifierade högerhand — det s.k. 'Helig Höger' — är ett av Ungerns mest heliga reliker! ✋"
+  },
+  {
+    q: "Vilket UNESCO-listat transportmedel löper under Andrássy út?",
+    opts: ["Spårvagn linje 2", "Tunnelbana M1", "Tunnelbana M2", "Buss 16"], a: 1,
+    fun: "Tunnelbana M1 öppnade 1896 — Europas näst äldsta metro. Andrássy út är också UNESCO-listat sedan 2002! 🚇"
+  },
+  {
+    q: "Vad heter torget i slutet av Andrássy út?",
+    opts: ["Deák Ferenc tér", "Erzsébet tér", "Vörösmarty tér", "Hősök tere"], a: 3,
+    fun: "Hősök tere — Hjältarnas torg — med det storslagna Millenniumsmonumentet, rest 1896 till minne av Ungerns 1000-årsdag! 🏆"
+  },
+  {
+    q: "Vilket år bygges Andrássy út?",
+    opts: ["1848–1860", "1872–1885", "1896–1910", "1920–1935"], a: 1,
+    fun: "Andrássy út byggdes 1872–1885 och är UNESCO-listad sedan 2002 — Budapests egen Champs-Élysées! 🛤️"
+  },
+  {
+    q: "Vilket år öppnade Operahuset (Magyar Állami Operaház) på Andrássy út?",
+    opts: ["1872", "1884", "1896", "1905"], a: 1,
+    fun: "Operahuset öppnade 1884 och räknas som ett av Europas vackraste — stod klart samma år som Frihetsgudinnan i New York! 🎭"
+  },
+  {
+    q: "Vad finns på Andrássy út nummer 60?",
+    opts: ["Ungerska nationalmuseet", "Terrorháza (Terrormuseet)", "Magyar Állami Operaház", "Széchenyi-badet"], a: 1,
+    fun: "Terrorháza på nr 60 var f.d. säkerhetspolisens högkvarter under både nazist- och kommunisttiden — nu ett gripande museum! 😶"
+  },
+  {
+    q: "Vilken roll hade Gyula Andrássy — mannen boulevard heter efter?",
+    opts: ["Ungersk kung", "Österrike-Ungerns förste utrikesminister", "Budapests borgmästare", "Byggnadschef för parlamentet"], a: 1,
+    fun: "Gyula Andrássy spelade nyckelroll i Ausgleich 1867 — kompromissen som skapade Österrike-Ungern — och blev dess förste utrikesminister. 🎩"
+  },
+  {
+    q: "Vilket år kröntes Stefanus I till Ungerns förste kung?",
+    opts: ["896", "1000", "1046", "1222"], a: 1,
+    fun: "Stefanus I kröntes år 1000 och lade grunden för det kristna Ungern. S:t Stefansbasilikan är uppkallad efter honom! 👑"
+  },
+  {
+    q: "Vilka dagar öppnar Széchenyi-badet kl. 06:00 (inte 08:00)?",
+    opts: ["Lördag–söndag", "Måndag–fredag", "Tisdag–torsdag", "Varje dag"], a: 1,
+    fun: "Vardagar öppnar Széchenyi redan kl. 06:00 — perfekt för en tidig morgondipp innan hettan slår till! ☀️"
+  }
+];
+
+const TOTAL = QUESTIONS.length;
+
+// Scores live in the URL hash so the link IS the leaderboard
+function loadScores() {
+  const h = location.hash.slice(1);
+  if (!h) return [];
+  try { return JSON.parse(atob(h)); } catch { return []; }
+}
+function saveScores(s) {
+  history.replaceState(null, '', '#' + btoa(JSON.stringify(s)));
+}
+
+let playerName = '', currentQ = 0, score = 0, shuffled = [], answered = false;
+let scores = loadScores();
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+const MEDALS = ['🥇', '🥈', '🥉'];
+function renderLeaderboard(containerId, highlight) {
+  const el = document.getElementById(containerId);
+  const sorted = [...scores].sort((a, b) => b.s - a.s);
+  if (sorted.length === 0) return;
+  el.innerHTML =
+    '<p class="lb-title">Topplista</p>' +
+    sorted.map((sc, i) => {
+      const isMe = sc.n === highlight;
+      const rank = i < 3 ? MEDALS[i] : (i + 1) + '.';
+      return `<div class="lb-row">
+        <span class="lb-rank">${rank}</span>
+        <span class="lb-name${isMe ? ' me' : ''}">${esc(sc.n)}${isMe ? ' ← du' : ''}</span>
+        <span class="lb-score">${sc.s}<span class="of">/${TOTAL}</span></span>
+      </div>`;
+    }).join('');
+}
+function updateWelcomeBoard() {
+  const wrap = document.getElementById('lb-welcome-wrap');
+  if (scores.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  renderLeaderboard('lb-welcome', null);
+}
+
+function startQuiz() {
+  playerName = document.getElementById('name-input').value.trim();
+  if (!playerName) { document.getElementById('name-input').focus(); return; }
+  currentQ = 0; score = 0; answered = false;
+  shuffled = shuffle(QUESTIONS).map(q => {
+    const indexed = q.opts.map((o, i) => ({ o, correct: i === q.a }));
+    const s = shuffle(indexed);
+    return { q: q.q, opts: s.map(x => x.o), a: s.findIndex(x => x.correct), fun: q.fun };
+  });
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = shuffled[currentQ];
+  document.getElementById('progress-fill').style.width = (currentQ / TOTAL * 100) + '%';
+  document.getElementById('progress-label').textContent = `${currentQ + 1} / ${TOTAL}`;
+  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('fun-fact').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('options').innerHTML = q.opts.map((opt, i) =>
+    `<button class="option-btn" onclick="pick(${i})">${esc(opt)}</button>`
+  ).join('');
+}
+
+function pick(chosen) {
+  if (answered) return;
+  answered = true;
+  const q = shuffled[currentQ];
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.a) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+  if (chosen === q.a) score++;
+  document.getElementById('fun-fact').textContent = q.fun;
+  document.getElementById('fun-fact').style.display = 'block';
+  const nb = document.getElementById('btn-next');
+  nb.textContent = currentQ + 1 < TOTAL ? 'Nästa fråga →' : 'Se resultat! 🏁';
+  nb.style.display = 'block';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= TOTAL) finish();
+  else renderQuestion();
+}
+
+function finish() {
+  scores = scores.filter(s => s.n !== playerName);
+  scores.push({ n: playerName, s: score });
+  saveScores(scores);
+
+  const pct = score / TOTAL;
+  let emoji, msg;
+  if (pct === 1)      { emoji = '🏆'; msg = 'Perfekt! Du kan allt om Budapest!'; }
+  else if (pct >= .8) { emoji = '⭐';        msg = 'Otroligt bra! En riktig Budapest-kännare!'; }
+  else if (pct >= .6) { emoji = '😊'; msg = 'Bra jobbat! Budapest satte tydliga spår.'; }
+  else if (pct >= .4) { emoji = '🤔'; msg = 'Halvvägs! Kanske ett extra museibesök nästa gång?'; }
+  else                { emoji = '😅'; msg = 'Budapest-studierna fortsätter… nästa gång bättre!'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = playerName;
+  document.getElementById('score-big').textContent = score;
+  document.getElementById('score-total').textContent = 'av ' + TOTAL + ' rätt';
+  document.getElementById('score-msg').textContent = msg;
+  renderLeaderboard('lb-result', playerName);
+  showScreen('result');
+}
+
+function shareResult() {
+  const url = location.href;
+  const text = `🏛️ Budapest Quiz\n${playerName} fick ${score}/${TOTAL} rätt!\n\nSpela du med och se topplistan:`;
+  if (navigator.share) {
+    navigator.share({ title: 'Budapest Quiz', text, url }).catch(() => copyUrl(url));
+  } else {
+    copyUrl(url);
+  }
+}
+function copyUrl(url) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(() => toast('Länk kopierad! Klistra in i chatten ✓'))
+      .catch(() => legacyCopy(url));
+  } else {
+    legacyCopy(url);
+  }
+}
+function legacyCopy(url) {
+  const ta = document.createElement('textarea');
+  ta.value = url;
+  Object.assign(ta.style, { position: 'fixed', opacity: '0', top: '0', left: '0' });
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('Länk kopierad! ✓'); }
+  catch { toast('Kopiera länken från adressfältet'); }
+  document.body.removeChild(ta);
+}
+
+function resetQuiz() {
+  document.getElementById('name-input').value = '';
+  showScreen('welcome');
+  updateWelcomeBoard();
+}
+
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startQuiz();
+});
+updateWelcomeBoard();
+</script>
+</body>
+</html>
