@@ -193,6 +193,28 @@
     .lb-score { font-size: .98rem; font-weight: 700; color: var(--green-dark); font-variant-numeric: tabular-nums; }
     .lb-score .of { color: var(--muted); font-weight: 400; font-size: .82rem; }
 
+    .section-title {
+      color: var(--red); font-size: .74rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em; margin: .2rem 0 .8rem;
+    }
+    .quiz-card {
+      display: flex; align-items: center; gap: .9rem; width: 100%; text-align: left;
+      padding: 1rem 1.1rem; margin-top: .6rem; background: #fffdf9;
+      border: 2px solid rgba(170, 120, 60, .2); border-radius: 13px; cursor: pointer;
+      transition: transform .15s, border-color .15s, background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .quiz-card:first-of-type { margin-top: 0; }
+    .quiz-card:active { transform: scale(.98); }
+    @media (hover: hover) {
+      .quiz-card:hover { border-color: rgba(205, 42, 62, .5); background: rgba(205, 42, 62, .05); }
+    }
+    .quiz-card .q-emoji { font-size: 1.9rem; flex-shrink: 0; }
+    .quiz-card .q-info { flex: 1; display: flex; flex-direction: column; }
+    .quiz-card .q-title { font-weight: 800; font-size: 1.02rem; color: var(--text); }
+    .quiz-card .q-blurb { color: var(--muted); font-size: .82rem; margin-top: .15rem; }
+    .quiz-card .q-arrow { color: var(--red); font-weight: 800; font-size: 1.2rem; flex-shrink: 0; }
+
     .share-hint { font-size: .82rem; color: var(--muted); text-align: center; margin-top: .6rem; }
 
     .toast {
@@ -226,7 +248,8 @@
         <label>Ditt namn</label>
         <input id="name-input" type="text" placeholder="Skriv ditt namn…" autocomplete="off" autocorrect="off" />
       </div>
-      <button class="btn btn-primary" onclick="startQuiz()">Starta quiz! 🚀</button>
+      <p class="section-title">Välj quiz</p>
+      <div id="quiz-list"></div>
     </div>
   </div>
 
@@ -260,14 +283,18 @@
     <div class="card" id="lb-result"></div>
     <button class="btn btn-share" onclick="shareResult()">Dela med vänner 🔗</button>
     <p class="share-hint">Alla som spelar hamnar på samma topplista — utmana dina vänner! 🏆</p>
-    <button class="btn btn-secondary" onclick="resetQuiz()">Spela igen</button>
+    <button class="btn btn-primary" onclick="playAgain()" style="margin-top:.7rem">Spela igen 🔁</button>
+    <button class="btn btn-secondary" onclick="resetQuiz()">Välj en annan dag 🗺️</button>
   </div>
 
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-const QUESTIONS = [
+const QUIZZES = {
+  budapest: {
+    title: 'Budapest-sevärdheter', emoji: '🏛️', blurb: 'Från resan: Gellért, basilikan, Andrássy út',
+    questions: [
   {
     q: "Hur varmt är vattnet i Széchenyi-badets bassänger?",
     opts: ["20–24°C", "28–32°C", "36–38°C", "42–46°C"], a: 2,
@@ -353,39 +380,94 @@ const QUESTIONS = [
     opts: ["896", "1000", "1046", "1222"], a: 1,
     fun: "Stefanus I kröntes år 1000 och lade grunden för det kristna Ungern. S:t Stefansbasilikan är uppkallad efter honom! 👑"
   }
-];
+    ]
+  },
 
-const TOTAL = QUESTIONS.length;
+  upptackter: {
+    title: 'Dagens upptäckter', emoji: '🗺️', blurb: 'Városliget, Anonymus & Sarajevo',
+    questions: [
+  {
+    q: "Vem ritade Ungerns musikhus (Magyar Zene Háza) i Városliget?",
+    opts: ["Sou Fujimoto", "Imre Makovecz", "Ignác Alpár", "Miklós Ybl"], a: 0,
+    fun: "Den japanske stjärnarkitekten Sou Fujimoto ritade Musikhuset, invigt 2022. Det svävande guldtaket har hål som släpper in dagsljus — inspirerat av ljus genom lövverk! 🍃"
+  },
+  {
+    q: "Vad är Városliget, där dagens upptäckter ligger?",
+    opts: ["En medeltida borg", "En av Europas äldsta offentliga stadsparker", "Budapests finansdistrikt", "Ett gammalt kloster"], a: 1,
+    fun: "Városliget (Stadsparken) är en av Europas äldsta offentliga parker och fick sin form till millenniefirandet 1896. Här ligger Vajdahunyad, Széchenyi-badet och zoo! 🌳"
+  },
+  {
+    q: "Vad är speciellt med Vajdahunyad-slottets arkitektur?",
+    opts: ["Det är byggt helt i glas", "Det kombinerar flera olika arkitekturstilar", "Det är Ungerns högsta byggnad", "Det ligger under jord"], a: 1,
+    fun: "Vajdahunyad är ett 'collage' som blandar romansk, gotisk, renässans- och barockstil i en enda byggnad — ritat av Ignác Alpár. 🏰"
+  },
+  {
+    q: "Vilket år byggdes Vajdahunyad-slottet ursprungligen?",
+    opts: ["1848", "1896", "1922", "1956"], a: 1,
+    fun: "Det byggdes först i trä för millenniumutställningen 1896 och återuppbyggdes i sten 1904–1908. 🪵→🧱"
+  },
+  {
+    q: "Vilket museum rymmer Vajdahunyad-slottet idag?",
+    opts: ["Ungerska lantbruksmuseet", "Nationalgalleriet", "Terrormuseet", "Järnvägsmuseet"], a: 0,
+    fun: "Slottet rymmer Ungerska lantbruksmuseet — ett av Europas största i sitt slag. 🌾"
+  },
+  {
+    q: "Vem föreställer den huvklädda Anonymus-statyn vid Vajdahunyad?",
+    opts: ["En okänd medeltida krönikör", "Kung Stefanus I", "Greve Dracula", "Arkitekten Alpár"], a: 0,
+    fun: "Anonymus var kung Béla III:s notarie och skrev Gesta Hungarorum. Hans riktiga namn är okänt — därför döljer huvan ansiktet. Skulptör: Miklós Ligeti, 1903. ✍️"
+  },
+  {
+    q: "Vad sägs hända om du rör vid Anonymus-statyns penna?",
+    opts: ["Du får tur i kärlek", "Du får skrivförmåga och författarlycka", "Du blir rik", "Du återvänder till Budapest"], a: 1,
+    fun: "Traditionen säger att den som rör pennspetsen får skrivförmåga — pennan är blanksliten av alla händer! 🖋️"
+  },
+  {
+    q: "Idag den 28 juni — vilket ödesdigert attentat skedde detta datum 1914?",
+    opts: ["Mordet på Lincoln", "Attentatet i Sarajevo", "Branden i Reichstag", "Stormningen av Bastiljen"], a: 1,
+    fun: "Den 28 juni 1914 sköts Österrike-Ungerns tronföljare Franz Ferdinand i Sarajevo — gnistan som utlöste första världskriget. 💥"
+  },
+  {
+    q: "Vem utförde attentatet i Sarajevo 1914?",
+    opts: ["Gavrilo Princip", "Vlad Țepeș", "Lajos Kossuth", "Miklós Horthy"], a: 0,
+    fun: "Gavrilo Princip, 19 år, medlem i den serbiska rörelsen 'Svarta handen'. Inom sex veckor var hela Europa i krig. 🕯️"
+  }
+    ]
+  }
+};
+
+const QUIZ_ORDER = ['budapest', 'upptackter'];
 
 // Poäng lagras i en delad Supabase-databas så alla ser samma topplista
 const SUPABASE_URL = 'https://kcqrkomcbtqbhclqpyri.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mWeCpNkPjMfQVbP4Ytq3Tw_wP9T2TAt';
 const SB_HEADERS = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY };
 
+// Hämtar alla rader och summerar poängen per spelare (över alla quiz/dagar)
 async function fetchScores() {
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/scores?select=name,score&order=score.desc`,
-      { headers: SB_HEADERS }
-    );
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?select=name,score`, { headers: SB_HEADERS });
     if (!res.ok) return [];
     const rows = await res.json();
-    return rows.map(r => ({ n: r.name, s: r.score }));
+    const totals = {};
+    for (const r of rows) totals[r.name] = (totals[r.name] || 0) + (r.score || 0);
+    return Object.entries(totals).map(([n, s]) => ({ n, s }));
   } catch { return []; }
 }
 
-async function submitScore(name, sc) {
+// En rad per (namn, quiz) — upsert så omspel uppdaterar just det quizets poäng
+async function submitScore(name, quiz, sc, total) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?on_conflict=name`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?on_conflict=name,quiz`, {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({ name, score: sc, total: TOTAL, updated_at: new Date().toISOString() })
+      body: JSON.stringify({ name, quiz, score: sc, total, updated_at: new Date().toISOString() })
     });
     return res.ok;
   } catch { return false; }
 }
 
-let playerName = '', currentQ = 0, score = 0, shuffled = [], answered = false;
+let playerName = '', currentQuiz = 'budapest', currentTotal = 0;
+let currentQ = 0, score = 0, shuffled = [], answered = false;
 let scores = [];
 
 function esc(s) {
@@ -415,16 +497,16 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 function renderLeaderboard(containerId, highlight) {
   const el = document.getElementById(containerId);
   const sorted = [...scores].sort((a, b) => b.s - a.s);
-  if (sorted.length === 0) return;
+  if (sorted.length === 0) { el.innerHTML = ''; return; }
   el.innerHTML =
-    '<p class="lb-title">Topplista</p>' +
+    '<p class="lb-title">Total topplista</p>' +
     sorted.map((sc, i) => {
       const isMe = sc.n === highlight;
       const rank = i < 3 ? MEDALS[i] : (i + 1) + '.';
       return `<div class="lb-row${isMe ? ' me' : ''}">
         <span class="lb-rank">${rank}</span>
         <span class="lb-name${isMe ? ' me' : ''}">${esc(sc.n)}${isMe ? ' ← du' : ''}</span>
-        <span class="lb-score">${sc.s}<span class="of">/${TOTAL}</span></span>
+        <span class="lb-score">${sc.s}<span class="of">p</span></span>
       </div>`;
     }).join('');
 }
@@ -436,11 +518,27 @@ async function updateWelcomeBoard() {
   renderLeaderboard('lb-welcome', null);
 }
 
-function startQuiz() {
+function renderQuizList() {
+  document.getElementById('quiz-list').innerHTML = QUIZ_ORDER.map(id => {
+    const q = QUIZZES[id];
+    return `<button class="quiz-card" onclick="startQuiz('${id}')">
+      <span class="q-emoji">${q.emoji}</span>
+      <span class="q-info">
+        <span class="q-title">${esc(q.title)}</span>
+        <span class="q-blurb">${esc(q.blurb)} · ${q.questions.length} frågor</span>
+      </span>
+      <span class="q-arrow">→</span>
+    </button>`;
+  }).join('');
+}
+
+function startQuiz(quizId) {
   playerName = document.getElementById('name-input').value.trim();
   if (!playerName) { document.getElementById('name-input').focus(); return; }
+  currentQuiz = quizId;
+  currentTotal = QUIZZES[quizId].questions.length;
   currentQ = 0; score = 0; answered = false;
-  shuffled = shuffle(QUESTIONS).map(q => {
+  shuffled = shuffle(QUIZZES[quizId].questions).map(q => {
     const indexed = q.opts.map((o, i) => ({ o, correct: i === q.a }));
     const s = shuffle(indexed);
     return { q: q.q, opts: s.map(x => x.o), a: s.findIndex(x => x.correct), fun: q.fun };
@@ -452,8 +550,8 @@ function startQuiz() {
 function renderQuestion() {
   answered = false;
   const q = shuffled[currentQ];
-  document.getElementById('progress-fill').style.width = (currentQ / TOTAL * 100) + '%';
-  document.getElementById('progress-label').textContent = `${currentQ + 1} / ${TOTAL}`;
+  document.getElementById('progress-fill').style.width = (currentQ / currentTotal * 100) + '%';
+  document.getElementById('progress-label').textContent = `${currentQ + 1} / ${currentTotal}`;
   document.getElementById('question-text').textContent = q.q;
   document.getElementById('fun-fact').style.display = 'none';
   document.getElementById('btn-next').style.display = 'none';
@@ -475,42 +573,42 @@ function pick(chosen) {
   document.getElementById('fun-fact').textContent = q.fun;
   document.getElementById('fun-fact').style.display = 'block';
   const nb = document.getElementById('btn-next');
-  nb.textContent = currentQ + 1 < TOTAL ? 'Nästa fråga →' : 'Se resultat! 🏁';
+  nb.textContent = currentQ + 1 < currentTotal ? 'Nästa fråga →' : 'Se resultat! 🏁';
   nb.style.display = 'block';
 }
 
 function nextQuestion() {
   currentQ++;
-  if (currentQ >= TOTAL) finish();
+  if (currentQ >= currentTotal) finish();
   else renderQuestion();
 }
 
 async function finish() {
-  const pct = score / TOTAL;
+  const pct = score / currentTotal;
   let emoji, msg;
-  if (pct === 1)      { emoji = '🏆'; msg = 'Perfekt! Du kan allt om Budapest!'; }
-  else if (pct >= .8) { emoji = '⭐';        msg = 'Otroligt bra! En riktig Budapest-kännare!'; }
-  else if (pct >= .6) { emoji = '😊'; msg = 'Bra jobbat! Budapest satte tydliga spår.'; }
-  else if (pct >= .4) { emoji = '🤔'; msg = 'Halvvägs! Kanske ett extra museibesök nästa gång?'; }
-  else                { emoji = '😅'; msg = 'Budapest-studierna fortsätter… nästa gång bättre!'; }
+  if (pct === 1)      { emoji = '🏆'; msg = 'Perfekt! Alla rätt!'; }
+  else if (pct >= .8) { emoji = '⭐'; msg = 'Otroligt bra — en riktig kännare!'; }
+  else if (pct >= .6) { emoji = '😊'; msg = 'Bra jobbat! Det mesta satt.'; }
+  else if (pct >= .4) { emoji = '🤔'; msg = 'Halvvägs — kör en runda till!'; }
+  else                { emoji = '😅'; msg = 'Studierna fortsätter… nästa gång bättre!'; }
 
   document.getElementById('result-emoji').textContent = emoji;
   document.getElementById('result-title').textContent = playerName;
   document.getElementById('score-big').textContent = score;
-  document.getElementById('score-total').textContent = 'av ' + TOTAL + ' rätt';
+  document.getElementById('score-total').textContent = 'av ' + currentTotal + ' rätt · ' + QUIZZES[currentQuiz].title;
   document.getElementById('score-msg').textContent = msg;
   document.getElementById('lb-result').innerHTML =
-    '<p class="lb-title">Topplista</p><p style="color:var(--muted);font-size:.9rem">Laddar…</p>';
+    '<p class="lb-title">Total topplista</p><p style="color:var(--muted);font-size:.9rem">Laddar…</p>';
   showScreen('result');
 
-  await submitScore(playerName, score);
+  await submitScore(playerName, currentQuiz, score, currentTotal);
   scores = await fetchScores();
   renderLeaderboard('lb-result', playerName);
 }
 
 function shareResult() {
   const url = location.origin + location.pathname;
-  const text = `🏛️ Budapest Quiz\n${playerName} fick ${score}/${TOTAL} rätt!\n\nSpela du med — alla hamnar på samma topplista:`;
+  const text = `🏛️ Budapest Quiz\n${playerName} fick ${score}/${currentTotal} rätt i "${QUIZZES[currentQuiz].title}"!\n\nSpela du med — alla hamnar på samma topplista:`;
   if (navigator.share) {
     navigator.share({ title: 'Budapest Quiz', text, url }).catch(() => copyUrl(url));
   } else {
@@ -537,15 +635,19 @@ function legacyCopy(url) {
   document.body.removeChild(ta);
 }
 
+function playAgain() {
+  startQuiz(currentQuiz);
+}
+
 function resetQuiz() {
-  document.getElementById('name-input').value = '';
   showScreen('welcome');
   updateWelcomeBoard();
 }
 
 document.getElementById('name-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startQuiz();
+  if (e.key === 'Enter') e.target.blur();
 });
+renderQuizList();
 updateWelcomeBoard();
 </script>
 </body>
