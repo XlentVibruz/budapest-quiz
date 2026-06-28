@@ -8,26 +8,28 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0e0e22;
-      --card: rgba(34, 34, 66, .72);
-      --card-border: rgba(228, 185, 74, .14);
-      --gold: #e4b94a;
-      --gold-light: #f5d77a;
-      --gold-dim: #b8923a;
-      --text: #f3f3fa;
-      --muted: #9a9ac0;
-      --green: #4caf50;
-      --red: #ef5350;
+      --bg: #fdf6ec;
+      --paper: #ffffff;
+      --card-border: rgba(170, 120, 60, .14);
+      --red: #cd2a3e;        /* paprika / flaggans röd */
+      --red-dark: #a51f30;
+      --green: #2f8f5b;      /* flaggans grön */
+      --green-dark: #236b43;
+      --gold: #d99b1c;
+      --gold-light: #f0bd47;
+      --text: #2c2419;
+      --muted: #8a7c69;
+      --wrong: #cd2a3e;
       --radius: 18px;
-      --shadow: 0 18px 40px -18px rgba(0, 0, 0, .65);
+      --shadow: 0 16px 38px -20px rgba(120, 70, 30, .45);
     }
 
     body {
       background: var(--bg);
       background-image:
-        radial-gradient(1200px 600px at 15% -5%, rgba(228, 185, 74, .14), transparent 60%),
-        radial-gradient(1000px 700px at 100% 0%, rgba(96, 84, 200, .28), transparent 55%),
-        radial-gradient(900px 900px at 50% 120%, rgba(40, 120, 130, .22), transparent 60%);
+        radial-gradient(1100px 520px at 12% -8%, rgba(205, 42, 62, .12), transparent 60%),
+        radial-gradient(1000px 620px at 100% 112%, rgba(47, 143, 91, .15), transparent 60%),
+        radial-gradient(800px 800px at 90% -10%, rgba(217, 155, 28, .12), transparent 55%);
       background-attachment: fixed;
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
@@ -57,43 +59,47 @@
     .header { text-align: center; padding: 2.25rem 0 1.25rem; }
     .header .emoji {
       font-size: 3.75rem; display: block; margin-bottom: 0.5rem;
-      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .4));
+      filter: drop-shadow(0 6px 12px rgba(120, 70, 30, .22));
       animation: popIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
     }
     .header h1 {
       font-size: 2.15rem; font-weight: 800; letter-spacing: -.01em;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-dim));
+      background: linear-gradient(135deg, var(--red), var(--gold) 52%, var(--green));
       -webkit-background-clip: text; background-clip: text; color: transparent;
-      filter: drop-shadow(0 0 26px rgba(228, 185, 74, .3));
     }
     .header p { color: var(--muted); margin-top: 0.45rem; font-size: 0.92rem; }
 
     .card {
-      background: var(--card);
+      position: relative;
+      background: var(--paper);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       padding: 1.5rem;
       margin: 0.85rem 0;
       box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    /* Tricolor-strimma längst upp på korten – ungerska flaggan */
+    .card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--red) 0 33.3%, #ffffff 33.3% 66.6%, var(--green) 66.6%);
     }
 
     .input-group { margin: 0.5rem 0 1.2rem; }
     .input-group label {
-      display: block; color: var(--gold); font-size: 0.74rem; font-weight: 700;
+      display: block; color: var(--red); font-size: 0.74rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: .08em; margin-bottom: .55rem;
     }
     .input-group input {
-      width: 100%; padding: 1rem 1.2rem; background: rgba(14, 14, 34, .65);
-      border: 2px solid rgba(228, 185, 74, .22); border-radius: 13px;
+      width: 100%; padding: 1rem 1.2rem; background: #fffdf9;
+      border: 2px solid rgba(170, 120, 60, .25); border-radius: 13px;
       color: var(--text); font-size: 1.1rem; outline: none;
       transition: border-color .2s, box-shadow .2s; -webkit-appearance: none;
     }
-    .input-group input::placeholder { color: rgba(154, 154, 192, .6); }
+    .input-group input::placeholder { color: rgba(138, 124, 105, .7); }
     .input-group input:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 4px rgba(228, 185, 74, .12);
+      border-color: var(--red);
+      box-shadow: 0 0 0 4px rgba(205, 42, 62, .12);
     }
 
     .btn {
@@ -104,36 +110,35 @@
     }
     .btn:active { transform: scale(.975); }
     .btn-primary {
-      background: linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-dim));
-      color: #1a1505;
-      box-shadow: 0 10px 24px -10px rgba(228, 185, 74, .7);
+      background: linear-gradient(135deg, #e23a4d, var(--red) 60%, var(--red-dark));
+      color: #fff;
+      box-shadow: 0 10px 24px -10px rgba(205, 42, 62, .6);
     }
     .btn-primary:active { filter: brightness(.96); }
     .btn-secondary {
-      background: rgba(255, 255, 255, .07); color: var(--text);
-      border: 1px solid rgba(255, 255, 255, .1); margin-top: .7rem;
+      background: #f3ead9; color: var(--text);
+      border: 1px solid rgba(170, 120, 60, .2); margin-top: .7rem;
     }
-    .btn-secondary:active { background: rgba(255, 255, 255, .12); }
+    .btn-secondary:active { background: #ebe0cb; }
     .btn-share {
       background: linear-gradient(135deg, #2fe07a, #25D366 70%, #1da851);
       color: #fff; margin-top: .7rem;
-      box-shadow: 0 10px 24px -10px rgba(37, 211, 102, .65);
+      box-shadow: 0 10px 24px -10px rgba(37, 211, 102, .5);
     }
     .btn-share:active { filter: brightness(.96); }
 
     .progress-wrap { display: flex; align-items: center; gap: .85rem; margin-bottom: 1.1rem; }
     .progress-bar {
-      flex: 1; height: 8px; background: rgba(255, 255, 255, .09);
+      flex: 1; height: 8px; background: rgba(120, 80, 40, .12);
       border-radius: 4px; overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, .4);
+      box-shadow: inset 0 1px 2px rgba(120, 70, 30, .12);
     }
     .progress-fill {
       height: 100%; border-radius: 4px; transition: width .45s cubic-bezier(.4, 0, .2, 1);
-      background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
-      box-shadow: 0 0 12px rgba(228, 185, 74, .6);
+      background: linear-gradient(90deg, var(--red), var(--gold) 55%, var(--green));
     }
     .progress-label {
-      font-size: .82rem; color: var(--text); font-weight: 700;
+      font-size: .82rem; color: var(--muted); font-weight: 700;
       white-space: nowrap; font-variant-numeric: tabular-nums;
     }
 
@@ -141,23 +146,23 @@
     .options { display: flex; flex-direction: column; gap: .7rem; }
     .option-btn {
       display: block; width: 100%; padding: .95rem 1.15rem;
-      background: rgba(255, 255, 255, .045); border: 2px solid rgba(255, 255, 255, .1);
+      background: #fffdf9; border: 2px solid rgba(170, 120, 60, .2);
       border-radius: 13px; color: var(--text); font-size: .98rem; text-align: left;
       cursor: pointer; transition: transform .15s, border-color .15s, background .15s;
       -webkit-tap-highlight-color: transparent;
     }
     .option-btn:active:not(:disabled) { transform: scale(.98); }
     @media (hover: hover) {
-      .option-btn:hover:not(:disabled) { border-color: rgba(228, 185, 74, .5); background: rgba(228, 185, 74, .06); }
+      .option-btn:hover:not(:disabled) { border-color: rgba(205, 42, 62, .55); background: rgba(205, 42, 62, .05); }
     }
-    .option-btn.correct { border-color: var(--green); background: rgba(76, 175, 80, .16); color: #9ee49f; font-weight: 700; }
-    .option-btn.wrong { border-color: var(--red); background: rgba(239, 83, 80, .12); color: #f4a3a1; }
+    .option-btn.correct { border-color: var(--green); background: rgba(47, 143, 91, .14); color: var(--green-dark); font-weight: 700; }
+    .option-btn.wrong { border-color: var(--wrong); background: rgba(205, 42, 62, .1); color: var(--red-dark); }
     .option-btn:disabled { cursor: default; }
 
     .fun-fact {
       margin-top: 1.1rem; padding: .95rem 1.1rem;
-      background: rgba(228, 185, 74, .08); border-left: 3px solid var(--gold);
-      border-radius: 0 10px 10px 0; font-size: .9rem; color: #d7d7ea; line-height: 1.6;
+      background: rgba(217, 155, 28, .1); border-left: 3px solid var(--gold);
+      border-radius: 0 10px 10px 0; font-size: .9rem; color: #5f5340; line-height: 1.6;
       animation: fadeUp .35s ease both;
     }
     .btn-next { margin-top: 1.1rem; }
@@ -165,28 +170,27 @@
     .score-display { text-align: center; padding: 1.25rem 0 .5rem; }
     .score-big {
       font-size: 4.75rem; font-weight: 900; line-height: 1;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-dim));
+      background: linear-gradient(135deg, var(--red), var(--gold) 52%, var(--green));
       -webkit-background-clip: text; background-clip: text; color: transparent;
-      filter: drop-shadow(0 0 30px rgba(228, 185, 74, .35));
       animation: popIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
     }
     .score-total { font-size: 1.1rem; color: var(--muted); margin-top: .25rem; }
     .score-msg { margin-top: .85rem; font-size: 1.05rem; font-weight: 600; line-height: 1.5; }
 
     .lb-title {
-      color: var(--gold); font-size: .74rem; font-weight: 700;
+      color: var(--red); font-size: .74rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: .1em; margin-bottom: .85rem;
     }
     .lb-row {
       display: flex; align-items: center; gap: .75rem; padding: .65rem .25rem;
-      border-bottom: 1px solid rgba(255, 255, 255, .06); border-radius: 8px;
+      border-bottom: 1px solid rgba(120, 80, 40, .1); border-radius: 8px;
     }
     .lb-row:last-child { border-bottom: none; }
-    .lb-row.me { background: rgba(228, 185, 74, .08); margin: 0 -.4rem; padding: .65rem .65rem; }
+    .lb-row.me { background: rgba(217, 155, 28, .12); margin: 0 -.4rem; padding: .65rem .65rem; }
     .lb-rank { font-size: 1rem; width: 1.9rem; text-align: center; flex-shrink: 0; font-weight: 700; }
     .lb-name { flex: 1; font-size: .98rem; font-weight: 600; }
-    .lb-name.me { color: var(--gold); }
-    .lb-score { font-size: .98rem; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+    .lb-name.me { color: var(--red); }
+    .lb-score { font-size: .98rem; font-weight: 700; color: var(--green-dark); font-variant-numeric: tabular-nums; }
     .lb-score .of { color: var(--muted); font-weight: 400; font-size: .82rem; }
 
     .share-hint { font-size: .82rem; color: var(--muted); text-align: center; margin-top: .6rem; }
@@ -197,7 +201,7 @@
       background: linear-gradient(135deg, #2fe07a, #25D366);
       color: #fff; padding: .75rem 1.5rem;
       border-radius: 100px; font-weight: 700; font-size: .9rem;
-      box-shadow: 0 12px 30px -8px rgba(37, 211, 102, .6);
+      box-shadow: 0 12px 30px -8px rgba(37, 211, 102, .5);
       transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); pointer-events: none;
       white-space: nowrap; z-index: 100;
     }
@@ -341,8 +345,8 @@ const QUESTIONS = [
   },
   {
     q: "Vilken roll hade Gyula Andrássy — mannen boulevard heter efter?",
-    opts: ["Ungersk kung", "Österrike-Ungerns förste utrikesminister", "Budapests borgmästare", "Byggnadschef för parlamentet"], a: 1,
-    fun: "Gyula Andrássy spelade nyckelroll i Ausgleich 1867 — kompromissen som skapade Österrike-Ungern — och blev dess förste utrikesminister. 🎩"
+    opts: ["Ungersk kung", "Österrike-Ungerns utrikesminister", "Budapests borgmästare", "Byggnadschef för parlamentet"], a: 1,
+    fun: "Gyula Andrássy spelade nyckelroll i Ausgleich 1867 — kompromissen som skapade Österrike-Ungern. Han blev Ungerns förste premiärminister och därefter dubbelmonarkins utrikesminister 1871–1879. 🎩"
   },
   {
     q: "Vilket år kröntes Stefanus I till Ungerns förste kung?",
