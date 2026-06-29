@@ -293,7 +293,7 @@
 <script>
 const QUIZZES = {
   budapest: {
-    title: 'Budapest-sevärdheter', emoji: '🏛️', blurb: 'Från resan: Gellért, basilikan, Andrássy út',
+    title: 'Lördag', emoji: '🏛️', blurb: 'Gellért, basilikan & Andrássy út',
     questions: [
   {
     q: "Hur varmt är vattnet i Széchenyi-badets bassänger?",
@@ -384,7 +384,7 @@ const QUIZZES = {
   },
 
   upptackter: {
-    title: 'Dagens upptäckter', emoji: '🗺️', blurb: 'Városliget, Anonymus & Sarajevo',
+    title: 'Söndag', emoji: '🗺️', blurb: 'Városliget, Anonymus & Sarajevo',
     questions: [
   {
     q: "Vem ritade Ungerns musikhus (Magyar Zene Háza) i Városliget?",
@@ -430,12 +430,73 @@ const QUIZZES = {
     q: "Vem utförde attentatet i Sarajevo 1914?",
     opts: ["Gavrilo Princip", "Vlad Țepeș", "Lajos Kossuth", "Miklós Horthy"], a: 0,
     fun: "Gavrilo Princip, 19 år, medlem i den serbiska rörelsen 'Svarta handen'. Inom sex veckor var hela Europa i krig. 🕯️"
+  },
+  {
+    q: "Den anrika restaurangen Gundel vid Városliget är känd för en efterrätt. Vilken?",
+    opts: ["Gundelpalacsinta (valnötspannkaka)", "Dobostårta", "Strudel", "Kürtőskalács"], a: 0,
+    fun: "Gundel, grundad 1894 vid stadsparken, gav namn åt Gundelpalacsinta — en pannkaka fylld med valnötter, russin och rom, serverad med mörk chokladsås och ofta flamberad! 🥞"
+  }
+    ]
+  },
+
+  mandag: {
+    title: 'Måndag', emoji: '🏰', blurb: 'Parlamentet, Skorna & Budaborgen',
+    questions: [
+  {
+    q: "I vilken arkitekturstil är ungerska parlamentet (Országház) byggt?",
+    opts: ["Nygotik", "Barock", "Art nouveau", "Brutalism"], a: 0,
+    fun: "Parlamentet byggdes 1885–1904 i nygotisk stil, ritat av Imre Steindl. Med 691 rum är det Ungerns största byggnad! 🏛️"
+  },
+  {
+    q: "Hur hög är parlamentets kupol?",
+    opts: ["76 m", "86 m", "96 m", "116 m"], a: 2,
+    fun: "96 meter — exakt lika högt som S:t Stefansbasilikan. Höjden hyllar millenniefirandet 1896. 📏"
+  },
+  {
+    q: "Vilken nationalklenod förvaras i parlamentet sedan år 2000?",
+    opts: ["Den heliga kronan (Stefanskronan)", "Kung Mattias svärd", "Sankt Gellérts stav", "Gyllene bullan"], a: 0,
+    fun: "Ungerns heliga krona — Stefanskronan — förvaras under parlamentets kupol, bevakad dygnet runt av kronvakter. 👑"
+  },
+  {
+    q: "Vad heter Budapests äldsta bro över Donau, som ni passerade?",
+    opts: ["Frihetsbron", "Kedjebron (Széchenyi lánchíd)", "Elisabethbron", "Margaretbron"], a: 1,
+    fun: "Kedjebron (Széchenyi lánchíd) invigdes 1849 som den första permanenta bron mellan Buda och Pest — bevakad av fyra stora stenlejon. 🦁"
+  },
+  {
+    q: "Vad hedrar minnesmärket med järnskor vid Donaus strand?",
+    opts: ["Offer för pilkorsrörelsens avrättningar 1944–45", "Drunknade sjömän", "Romerska soldater", "Översvämningens offer"], a: 0,
+    fun: "'Skorna på Donaukajen' hedrar judar och andra som av pilkorsmilisen tvingades ta av sig skorna och sköts ned i floden vintern 1944–45. 🕯️"
+  },
+  {
+    q: "Hur många par skor består sko-minnesmärket av?",
+    opts: ["20", "40", "60", "100"], a: 2,
+    fun: "60 par järnskor i 1940-talsmodell, skapade 2005 av skulptören Gyula Pauer och regissören Can Togay. 👞"
+  },
+  {
+    q: "Vilket museum finns idag i Budaborgen (kungliga palatset)?",
+    opts: ["Ungerska nationalgalleriet", "Terrormuseet", "Lantbruksmuseet", "Musikhuset"], a: 0,
+    fun: "Budaborgen rymmer Ungerska nationalgalleriet (Magyar Nemzeti Galéria) samt Budapests historiska museum. 🎨"
+  },
+  {
+    q: "Mátyás-brunnen vid Budaborgen skildrar en ungersk kung på jakt. Vilken?",
+    opts: ["Mattias Corvinus", "Stefanus I", "Béla IV", "Ludvig den store"], a: 0,
+    fun: "Brunnen visar kung Mattias Corvinus på jakt och legenden om den vackra Ilonka. Skapad av Alajos Stróbl, 1904. ⛲"
+  },
+  {
+    q: "Vad är Mátyás-kyrkan särskilt känd för?",
+    opts: ["Sitt färgglada Zsolnay-kakeltak", "Sin lutande klockstapel", "Att vara byggd i trä", "Sin guldkupol"], a: 0,
+    fun: "Mátyás-templom kröns av ett mönstrat tak i färgglada Zsolnay-kakel. Här kröntes flera ungerska kungar. ⛪"
+  },
+  {
+    q: "Halászbástya (Fiskarbastionen) har sju torn. Vad symboliserar de?",
+    opts: ["De sju magyariska stammarna", "De sju dödssynderna", "Sju ungerska kungar", "Sju floder"], a: 0,
+    fun: "Fiskarbastionens sju torn symboliserar de sju magyariska stammar som grundade Ungern 895–896. Den nyromanska terrassen stod klar 1902. 🏰"
   }
     ]
   }
 };
 
-const QUIZ_ORDER = ['budapest', 'upptackter'];
+const QUIZ_ORDER = ['budapest', 'upptackter', 'mandag'];
 
 // Poäng lagras i en delad Supabase-databas så alla ser samma topplista
 const SUPABASE_URL = 'https://kcqrkomcbtqbhclqpyri.supabase.co';
